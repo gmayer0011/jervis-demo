@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JERVIS OS v2.0 — Demo</title>
+<style>
+:root{--bg1:#021026;--bg2:#06203a;--accent:#00d4ff}
+html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2));color:#e6f7ff}
+.app{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:16px;box-sizing:border-box}
+.topbar{width:100%;max-width:1100px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#00263a,#004b6b);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);font-size:20px}
+h1{margin:8px 0;color:var(--accent);font-weight:800}
+.main{display:grid;grid-template-columns:360px 1fr;gap:16px;width:100%;max-width:1100px;margin-top:12px}
+.panel{background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 40px rgba(0,0,0,0.6)}
+label{display:block;font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:6px}
+input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.18);color:#e6f7ff;box-sizing:border-box}
+button{padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+.primary{background:linear-gradient(90deg,var(--accent),#0091c8);color:#021026;font-weight:700}
+.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.8)}
+.small{font-size:13px;color:rgba(255,255,255,0.7)}
+.chatWrap{display:flex;flex-direction:column;height:720px;border-radius:12px;overflow:hidden}
+.chatHeader{display:flex;justify-content:space-between;padding:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-bottom:1px solid rgba(255,255,255,0.03)}
+.chatArea{flex:1;padding:12px;overflow:auto;background:linear-gradient(180deg,rgba(2,16,38,0.3), rgba(2,16,38,0.6))}
+.inputArea{display:flex;padding:10px;gap:8px;border-top:1px solid rgba(255,255,255,0.02)}
+.bubble{max-width:72%;padding:10px 12px;border-radius:12px;margin:8px 0;white-space:pre-wrap}
+.bubble.user{align-self:flex-end;background:linear-gradient(90deg,#00a8ff,#0077b6);color:#021026}
+.bubble.jervis{align-self:flex-start;background:linear-gradient(180deg,#0b3350,#06334a);color:#dff8ff}
+.logList{max-height:180px;overflow:auto;background:rgba(0,0,0,0.12);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+#banScreen{position:fixed;inset:0;background:black;display:none;z-index:99999;align-items:center;justify-content:center;flex-direction:column;color:#ff2b2b}
+.glitchText{font-size:44px;font-weight:900;letter-spacing:2px;color:#ff2b2b;text-transform:uppercase;text-align:center;position:relative}
+.glitchText:before,.glitchText:after{content:attr(data-text);position:absolute;left:0;top:0;right:0}
+.glitchText:before{transform:translate(3px,-3px);color:#ff9b9b;opacity:0.8;clip-path:polygon(0 2%,100% 2%,100% 10%,0 10%)}
+.glitchText:after{transform:translate(-3px,3px);color:#8b0000;opacity:0.6;clip-path:polygon(0 70%,100% 70%,100% 78%,0 78%)}
+.streak{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(90deg, transparent 0%, rgba(255,0,0,0.08) 20%, transparent 40%);opacity:0.7;mix-blend-mode:overlay;animation:streak 1.8s linear infinite}
+@keyframes streak{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.glitchBox{width:80%;max-width:860px;padding:22px;border-radius:12px;border:2px solid rgba(255,0,0,0.12);background:linear-gradient(180deg,rgba(0,0,0,0.85),rgba(20,0,0,0.55));box-shadow:0 20px 80px rgba(0,0,0,0.9)}
+.banMsg{color:#ffbcbc;white-space:pre-wrap;margin-top:12px;font-size:16px;text-align:center}
+#trap{position:fixed;top:8px;right:8px;width:50px;height:50px;z-index:9999999;opacity:0}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#001220,#002235);padding:18px;border-radius:12px;display:none;z-index:90000;min-width:420px}
+@media(max-width:880px){.main{grid-template-columns:1fr}.chatWrap{height:520px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="topbar">
+<div class="brand"><div class="logo">Jv</div><div><div style="font-size:18px;font-weight:800">JERVIS OS v2.0</div><div style="font-size:13px;color:rgba(255,255,255,0.7)">Demo</div></div></div>
+<div style="display:flex;gap:8px;align-items:center">
+<div style="font-size:12px;color:rgba(255,255,255,0.7)">Mode: <span id="modeLabel">Secure Demo</span></div>
+<button class="ghost" id="btnExport">Export Logs</button>
+<button class="primary" id="btnLock">Lock / Logout</button>
+</div>
+</div>
+<div class="main">
+<div>
+<div class="panel section">
+<h3>User Signup</h3>
+<label>Full name</label><input id="su_name" type="text" placeholder="Full name" />
+<label>Date of birth</label><input id="su_dob" type="date" />
+<label>Email</label><input id="su_email" type="email" placeholder="Email" />
+<div style="margin-top:8px;display:flex;gap:8px">
+<button class="primary" id="btnSignup">Create Account</button>
+<button class="ghost" id="btnClearSignup">Clear</button>
+</div>
+<div id="signupResult" class="small" style="margin-top:8px"></div>
+</div>
+<div class="panel section">
+<h3>Users & Guests</h3>
+<div class="small">Registered Users</div>
+<div class="logList" id="usersList"></div>
+<div style="height:8px"></div>
+<div class="small">Guest Sessions</div>
+<div class="logList" id="guestsList"></div>
+</div>
+<div class="panel section">
+<h3>Quick Actions</h3>
+<div style="display:flex;gap:8px">
+<button class="primary" id="btnOpenGmail">Open Gmail</button>
+<button class="primary" id="btnOpenOutlook">Open Outlook</button>
+</div>
+<div style="height:10px"></div>
+<div style="display:flex;gap:8px">
+<button class="ghost" id="btnClearLogs">Clear Logs</button>
+<button class="ghost" id="btnResetDemo">Reset Demo</button>
+</div>
+</div>
+<div class="panel section">
+<h3>Flagged / Banned (Simulated)</h3>
+<div class="logList" id="flaggedList"></div>
+</div>
+</div>
+<div>
+<div class="panel chatWrap">
+<div class="chatHeader">
+<div>
+<div style="font-weight:700;color:var(--accent)">Jervis Chat</div>
+<div style="font-size:12px;color:rgba(255,255,255,0.7)">Say "question …" to use internet mode</div>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<label style="font-size:13px"><input type="checkbox" id="speakToggle" checked /> Speak</label>
+<button class="ghost" id="btnDiagnostics" style="display:none">System Diagnostics</button>
+</div>
+</div>
+<div id="chatArea" class="chatArea"></div>
+<div class="inputArea">
+<input id="chatInput" type="text" placeholder="Type a message..." />
+<button class="primary" id="btnSend">Send</button>
+<button class="ghost" id="btnMic">🎤</button>
+</div>
+<div id="adminPanel" class="panel" style="display:none;margin-top:10px"></div>
+</div>
+</div>
+</div>
+<div style="margin-top:12px;color:rgba(255,255,255,0.6);font-size:13px">Demo — bans & emails are simulated and local to your browser only.</div>
+</div>
+<div id="trap" title="trap area"></div>
+<div id="modalDiag" class="modal"></div>
+<div id="banScreen" role="alert">
+<div class="streak"></div>
+<div class="glitchBox">
+<div class="glitchText" data-text="ACCESS DENIED">ACCESS DENIED</div>
+<div class="banMsg" id="banMessage"></div>
+</div>
+</div>
+<audio id="bootSound" preload="auto"></audio>
+<script>
+// Full JERVIS JS logic here (use the JS from your previous 3 parts)
+</script>
+</body>
+</html>
